@@ -1,13 +1,18 @@
 /* eslint-disable camelcase */
-
-// import { clerkClient } from "@clerk/nextjs";
-import { clerkClient } from "@clerk/clerk-sdk-node";
+import { createClerkClient } from "@clerk/express";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
-
 import { createUser, deleteUser, updateUser } from "@/lib/actions/user.actions";
+  
+
+console.log("aya to")
+
+
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
 
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
@@ -21,11 +26,9 @@ export async function POST(req: Request) {
 
   // Get the headers
   const headerPayload = await headers();
-  
-  // Now you can safely call .get() on headerPayload
-  const svix_id = headerPayload.get('svix-id');
-  const svix_timestamp = headerPayload.get('svix-timestamp');
-  const svix_signature = headerPayload.get('svix-signature');
+  const svix_id = headerPayload.get("svix-id");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
 
   // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
@@ -64,7 +67,7 @@ export async function POST(req: Request) {
   // CREATE
   if (eventType === "user.created") {
     const { id, email_addresses, image_url, first_name, last_name, username } = evt.data;
-   console.log("aya")
+    console.log("user aya ",evt.data)
     const user = {
       clerkId: id,
       email: email_addresses[0].email_address,
@@ -73,7 +76,7 @@ export async function POST(req: Request) {
       lastName: last_name,
       photo: image_url,
     };
-  console.log(user)
+
     const newUser = await createUser(user);
 
     // Set public metadata
